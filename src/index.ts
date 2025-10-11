@@ -11,7 +11,7 @@ type Entry = {
 };
 
 const deck: Entry[] = [
-  {tld: 1, name: 'Ace of Clubs', value: 1},
+  {tld: 1, name: 'Ace of Clubs', value: 11},
   {tld: 2, name: 'Two of Clubs', value: 2},
   {tld: 3, name: 'Three of Clubs', value: 3},
   {tld: 4, name: 'Four of Clubs', value: 4},
@@ -24,7 +24,7 @@ const deck: Entry[] = [
   {tld: 11, name: 'Jack of Clubs', value: 10},
   {tld: 12, name: 'Queen of Clubs', value: 10},
   {tld: 13, name: 'King of Clubs', value: 10},
-  {tld: 14, name: 'Ace of Diamonds', value: 1},
+  {tld: 14, name: 'Ace of Diamonds', value: 11},
   {tld: 15, name: 'Two of Diamonds', value: 2},
   {tld: 16, name: 'Three of Diamonds', value: 3},
   {tld: 17, name: 'Four of Diamonds', value: 4},
@@ -37,7 +37,7 @@ const deck: Entry[] = [
   {tld: 24, name: 'Jack of Diamonds', value: 10},
   {tld: 25, name: 'Queen of Diamonds', value: 10},
   {tld: 26, name: 'King of Diamonds', value: 10},
-  {tld: 27, name: 'Ace of Hearts', value: 1},
+  {tld: 27, name: 'Ace of Hearts', value: 11},
   {tld: 28, name: 'Two of Hearts', value: 2},
   {tld: 29, name: 'Three of Hearts', value: 3},
   {tld: 30, name: 'Four of Hearts', value: 4},
@@ -50,7 +50,7 @@ const deck: Entry[] = [
   {tld: 37, name: 'Jack of Hearts', value: 10},
   {tld: 38, name: 'Queen of Hearts', value: 10},
   {tld: 39, name: 'King of Hearts', value: 10},
-  {tld: 40, name: 'Ace of Spades', value: 1},
+  {tld: 40, name: 'Ace of Spades', value: 11},
   {tld: 41, name: 'Two of Spades', value: 2},
   {tld: 42, name: 'Three of Spades', value: 3},
   {tld: 43, name: 'Four of Spades', value: 4},
@@ -88,6 +88,7 @@ function calculateScore(hand: Entry[]): number {
 
 let player_total = calculateScore(player_hand);
 let dealer_total = calculateScore(dealer_hand);
+let player_playing = true;
 
 console.log("Player's total score: " + player_total + "\n");
 
@@ -101,13 +102,67 @@ var rl = readline.createInterface({
 });
 
 function play(): void {
-    if (player_total < 21) {
+    if (player_playing) {
         rl.question("Hit or Stand? Type hit or stand: ", function(answer) {
-        console.log("\nHit me!\n");
-        player_hand.push(deck[hit()]);
-        console.log(player_hand[player_hand.length - 1]['name'] + "\n");
-        play();
+        if (answer.toLowerCase() === "hit") {
+            console.log("\nHit me!\n");
+            player_hand.push(deck[hit()]);
+            console.log(player_hand[player_hand.length - 1]['name'] + "\n");
+            player_total = calculateScore(player_hand)
+            console.log("Player's total score: " + player_total + '\n')
+            if (player_total > 21) {
+              for (let hand = 0; hand < player_hand.length; hand++) {
+                if (player_hand[hand]['value'] === 11) {
+                  player_hand[hand]['value'] = 1
+                  player_total = calculateScore(player_hand)
+                  console.log("Player's total score: " + player_total + '\n')
+                }
+              }
+              if (player_total > 21)
+                console.log("Player bust!")
+                player_playing = false
+            }
+            play();
+        }
+        else if (answer.toLowerCase() === "stand") {
+            console.log("\nStand.\n");
+            console.log("Dealer's cards: " + dealer_hand[0]['name'] + " and " + dealer_hand[1]['name'])
+            console.log("\nDealers total score: " + dealer_total + '\n')
+            if (dealer_total > player_total) {
+              console.log("Dealer wins.")
+            }
+            player_playing = false;
+            play();
+        }
         });
+    }
+    else if (player_total === 21){
+        console.log("Blackjack! Player wins!");
+        player_playing = false
+    }
+    else if (player_total > 21){
+        console.log("Bust! Dealer wins. Better luck next time.")
+    }
+    else if (dealer_total < player_total) {
+        console.log("Dealer hits.\n")
+        dealer_hand.push(deck[hit()]);
+        console.log(dealer_hand[dealer_hand.length - 1]['name'] + "\n")
+        dealer_total = calculateScore(dealer_hand)
+        console.log("Dealer's total score: " + dealer_total + '\n')
+        if (dealer_total > 21) {
+          console.log("Dealer bust! Player wins!\n")
+        }
+        else if (dealer_total === 21) {
+          console.log("Dealer gets 21 that's blackjack! Player loses.")
+        }
+        else if (dealer_total <= player_total) {
+          console.log("Dealer hits.\n");
+          dealer_hand.push(deck[hit()]);
+          console.log(dealer_hand[dealer_hand.length - 1]['name'] + "\n");
+          dealer_total = calculateScore(dealer_hand);
+          console.log("Dealer's total score: " + dealer_total + '\n');
+          play();
+        }
     }
 }
 
